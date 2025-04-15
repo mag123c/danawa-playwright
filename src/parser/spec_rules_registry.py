@@ -5,6 +5,12 @@ from src.parser.spec_rules import CapacitySpecParser
 from src.parser.spec_rules import FeatureSpecParser
 from src.parser.spec_rules import VoltageSpecParser
 from src.parser.spec_rules import DescriptionSpecParser
+from src.parser.spec_rules import ColorSpecParser
+from src.parser.spec_rules import InnerVolumeSpecParser
+from src.parser.spec_rules import InsulationSpecParser
+from src.parser.spec_rules import MaterialSpecParser
+from src.parser.spec_rules import TemperatureRangeSpecParser
+from src.parser.spec_rules import UsageSpecParser
 
 
 class SpecRuleRegistry:
@@ -16,6 +22,12 @@ class SpecRuleRegistry:
             FeatureSpecParser(),
             VoltageSpecParser(),
             DescriptionSpecParser(),
+            ColorSpecParser(),
+            InnerVolumeSpecParser(),
+            InsulationSpecParser(),
+            MaterialSpecParser(),
+            TemperatureRangeSpecParser(),
+            UsageSpecParser(),
         ]
 
     def parse_fragment(self, fragment: str) -> tuple[str, str] | None:

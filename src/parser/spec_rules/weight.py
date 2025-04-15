@@ -1,10 +1,9 @@
-
 import re
 from .base import SpecParserBase
 
 class WeightSpecParser(SpecParserBase):
     def match(self, fragment: str) -> bool:
-        return bool(re.search(r"(무게)", fragment, re.IGNORECASE))
+        return "무게" in fragment or "중량" in fragment
 
-    def parse(self, fragment: str) -> tuple[str, str]:
-        return "weight", fragment
+    def key(self) -> str:
+        return "weight"

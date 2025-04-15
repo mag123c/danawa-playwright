@@ -11,4 +11,9 @@ class EquipmentSpecs:
     temperature_range: Optional[str] = None
     power_consumption: Optional[str] = None
     description: Optional[str] = None
+    material: Optional[str] = None 
+    color: Optional[str] = None
+    usage: Optional[str] = None
+    insulation: Optional[str] = None
+    inner_volume: Optional[str] = None
     extra: Optional[str] = None
