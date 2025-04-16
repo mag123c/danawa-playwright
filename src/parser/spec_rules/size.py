@@ -3,7 +3,12 @@ from .base import SpecParserBase
 
 class SizeSpecParser(SpecParserBase):
     def match(self, fragment: str) -> bool:
-        return "크기" in fragment or "사이즈" in fragment
+        return (
+            "크기" in fragment or 
+            "사이즈" in fragment or 
+            any(keyword in fragment for keyword in ["가로", "세로", "높이"])
+        )
+
 
     def key(self) -> str:
         return "size"

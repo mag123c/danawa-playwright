@@ -1,3 +1,4 @@
+import re
 from .base import SpecParserBase
 
 class CapacitySpecParser(SpecParserBase):
@@ -6,3 +7,15 @@ class CapacitySpecParser(SpecParserBase):
 
     def key(self) -> str:
         return "capacity"
+
+    def normalize(self, value: str) -> str:
+        value = re.sub(r"[()~약]|약|\s+", "", value, flags=re.IGNORECASE) 
+        value = value.replace("리터", "L").replace("ℓ", "L")
+
+        nums = re.findall(r"(\d+(?:\.\d+)?)", value)
+
+        if not nums:
+            return value.strip()
+
+        capacity = float(nums[0])
+        return f"{capacity:.2f}"
