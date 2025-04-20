@@ -1,2 +1,8 @@
 *.json
+<<<<<<< HEAD
 dawana_*/*
+=======
+dawana_*/*
+*.zip
+*.csv
+>>>>>>> origin
