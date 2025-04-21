@@ -1,3 +1,4 @@
+from datetime import datetime
 from src.infra.danawa_scraper import DanawaScraper
 from src.storage.file_storage import save_as_json
 
@@ -25,6 +26,8 @@ categories = [
     },
 ]
 
+root_dir = f"danawa_{datetime.now().strftime('%Y%m%d')}"
+
 for category in categories:
     print(f"📦 {category['cate_name']} 수집 시작")
     scraper = DanawaScraper(
@@ -32,7 +35,8 @@ for category in categories:
         category_code=category["cate_code"],
         referer_code=category["ref_cate_code"],
         sub_category=category["cate_name"],
-        depth=category["depth"]
+        depth=category["depth"],
+        base_dir=root_dir
     )
     items = scraper.scrape()
-    save_as_json(items, category["cate_name"])
+    save_as_json(items, category["cate_name"], base_dir=root_dir)

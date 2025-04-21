@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from urllib.parse import urlencode
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
@@ -6,13 +8,14 @@ from src.infra.danawa_additional_fetcher import DanawaAdditionalFetcher
 import re
 
 class DanawaScraper:
-    def __init__(self, group_code: str, category_code: str, referer_code: str, sub_category: str, depth: str = "3", end_page: int = 100):
+    def __init__(self, group_code: str, category_code: str, referer_code: str, sub_category: str, depth: str = "3", end_page: int = 100, base_dir: Optional[str] = None):
         self.group_code = group_code
         self.category_code = category_code
         self.referer_code = referer_code
         self.sub_category = sub_category
         self.depth = depth
         self.end_page = end_page
+        self.base_dir = base_dir or f"danawa_{datetime.now().strftime('%Y%m%d')}"
 
     def scrape(self) -> list:
         url = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
@@ -66,7 +69,7 @@ class DanawaScraper:
 
                     for item in items:
                         try:
-                            equipment = ProductParser.parse_product_item(item, self.sub_category)
+                            equipment = ProductParser.parse_product_item(item, self.sub_category, page, self.base_dir)
                             pid = re.sub(r"^productItem", "", equipment.id)
                             equipment_map[pid] = equipment
                             product_ids.append(pid)
