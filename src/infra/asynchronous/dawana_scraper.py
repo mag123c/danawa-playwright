@@ -106,6 +106,8 @@ class DanawaAsyncScraper:
                                 equipment.reviews = review_results[stripped_id]
                     else:
                         print(f"🔍 리뷰 수집 대상 없음 (페이지 내 전부 review_count == 0)")
+                        
+                    all_results.extend(equipment_map.values());
 
             finally:
                 await page.close()
