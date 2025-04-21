@@ -1,5 +1,6 @@
+import asyncio
 from datetime import datetime
-from src.infra.danawa_scraper import DanawaScraper
+from src.infra.asynchronous.dawana_scraper import DanawaAsyncScraper
 from src.storage.file_storage import save_as_json
 
 categories = [
@@ -28,15 +29,33 @@ categories = [
 
 root_dir = f"danawa_{datetime.now().strftime('%Y%m%d')}"
 
-for category in categories:
-    print(f"📦 {category['cate_name']} 수집 시작")
-    scraper = DanawaScraper(
-        group_code=category["group_code"],
-        category_code=category["cate_code"],
-        referer_code=category["ref_cate_code"],
-        sub_category=category["cate_name"],
-        depth=category["depth"],
-        base_dir=root_dir
-    )
-    items = scraper.scrape()
-    save_as_json(items, category["cate_name"], base_dir=root_dir)
+# sync
+# for category in categories:
+#     print(f"📦 {category['cate_name']} 수집 시작")
+#     scraper = DanawaScraper(
+#         group_code=category["group_code"],
+#         category_code=category["cate_code"],
+#         referer_code=category["ref_cate_code"],
+#         sub_category=category["cate_name"],
+#         depth=category["depth"],
+#         base_dir=root_dir
+#     )
+#     items = scraper.scrape()
+#     save_as_json(items, category["cate_name"], base_dir=root_dir)
+
+# async
+async def main():
+    for category in categories:
+        print(f"📦 {category['cate_name']} 수집 시작")
+        scraper = DanawaAsyncScraper(
+            group_code=category["group_code"],
+            category_code=category["cate_code"],
+            referer_code=category["ref_cate_code"],
+            sub_category=category["cate_name"],
+            depth=category["depth"]
+        )
+        items = await scraper.scrape()
+        save_as_json(items, category["cate_name"])
+
+if __name__ == "__main__":
+    asyncio.run(main())
