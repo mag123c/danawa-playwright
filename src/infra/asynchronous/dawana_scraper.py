@@ -80,30 +80,32 @@ class DanawaAsyncScraper:
                         
                     review_data = await fetcher.fetch(product_ids, self.group_code)
 
-                    # 병렬 리뷰 수집
-                    review_results = await collect_reviews_concurrently(
-                        product_list=[e for e in equipment_map.values()],
-                        sub_category=self.sub_category,
-                        base_dir=self.base_dir
-                    )
-
                     # 병합
                     for pid, equipment in equipment_map.items():
                         stripped_id = equipment.id.replace("productItem", "")
-
-                        # 리뷰 본문 병합
-                        if stripped_id in review_results:
-                            equipment.reviews = review_results[stripped_id]
-
-                        # 리뷰 요약 점수 병합
                         info = review_data.get(stripped_id, {})
-                        try:
-                            if info.get("review_count") is not None:
-                                equipment.review_count = info["review_count"]
-                            if info.get("score_count") is not None:
-                                equipment.score_count = info["score_count"]
-                        except Exception as e:
-                            print(f"⚠️ 리뷰 데이터 파싱 오류: {e}")
+
+                        if info.get("review_count") is not None:
+                            equipment.review_count = info["review_count"]
+                        if info.get("score_count") is not None:
+                            equipment.score_count = info["score_count"]
+
+                    # ✅ 리뷰 수 있는 애만 병렬 수집
+                    review_targets = [e for e in equipment_map.values() if (e.review_count or 0) > 0]
+
+                    if review_targets:
+                        review_results = await collect_reviews_concurrently(
+                            product_list=review_targets,
+                            sub_category=self.sub_category,
+                            base_dir=self.base_dir
+                        )
+
+                        for pid, equipment in equipment_map.items():
+                            stripped_id = equipment.id.replace("productItem", "")
+                            if stripped_id in review_results:
+                                equipment.reviews = review_results[stripped_id]
+                    else:
+                        print(f"🔍 리뷰 수집 대상 없음 (페이지 내 전부 review_count == 0)")
 
             finally:
                 await page.close()
