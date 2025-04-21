@@ -1,26 +1,28 @@
 
-from src.parser.spec_rules import SizeSpecParser
-from src.parser.spec_rules import WeightSpecParser
-from src.parser.spec_rules import CapacitySpecParser
-from src.parser.spec_rules import FeatureSpecParser
-from src.parser.spec_rules import VoltageSpecParser
-from src.parser.spec_rules import DescriptionSpecParser
-from src.parser.spec_rules import ColorSpecParser
-from src.parser.spec_rules import InnerVolumeSpecParser
-from src.parser.spec_rules import InsulationSpecParser
-from src.parser.spec_rules import MaterialSpecParser
-from src.parser.spec_rules import TemperatureRangeSpecParser
-from src.parser.spec_rules import UsageSpecParser
-
-
+from src.parser.spec_rules import (
+    SizeSpecParser,
+    WeightSpecParser,
+    CapacitySpecParser,
+    FeatureSpecParser,
+    VoltageSpecParser,
+    DescriptionSpecParser,
+    ColorSpecParser,
+    InnerVolumeSpecParser,
+    InsulationSpecParser,
+    MaterialSpecParser,
+    TemperatureRangeSpecParser,
+    UsageSpecParser,
+    DescriptionBooleanSpecParser,
+)
 class SpecRuleRegistry:
-    def __init__(self):
+    def __init__(self, sub_category: str):
         self.parsers = [
             SizeSpecParser(),
             WeightSpecParser(),
             CapacitySpecParser(),
             FeatureSpecParser(),
             VoltageSpecParser(),
+            DescriptionBooleanSpecParser(sub_category=sub_category), 
             DescriptionSpecParser(),
             ColorSpecParser(),
             InnerVolumeSpecParser(),
@@ -30,8 +32,19 @@ class SpecRuleRegistry:
             UsageSpecParser(),
         ]
 
-    def parse_fragment(self, fragment: str) -> tuple[str, str] | None:
+    def parse_fragment(self, fragment: str) -> list[tuple[str, str]] | None:
+        results = []
+
         for parser in self.parsers:
             if parser.match(fragment):
-                return parser.parse(fragment)
-        return None
+                parsed = parser.parse(fragment)
+                if isinstance(parsed, list):
+                    results.extend(parsed)
+                elif parsed:
+                    results.append(parsed)
+
+                if isinstance(parser, DescriptionBooleanSpecParser) or isinstance(parser, DescriptionSpecParser):
+                    continue
+                break 
+
+        return results if results else None

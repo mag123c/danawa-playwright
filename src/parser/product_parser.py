@@ -3,8 +3,6 @@ from src.domain.equipment import Equipment, EquipmentSpecs
 from src.parser.spec_rules_registry import SpecRuleRegistry
 
 class ProductParser:
-    spec_registry = SpecRuleRegistry()
-
     @staticmethod
     def parse_product_item(item: Tag, sub_category: str) -> Equipment:
         id = item.get("id")
@@ -19,7 +17,7 @@ class ProductParser:
         maker = item.select_one(".price_sect button[data-maker-name]").get("data-maker-name", "")
         registered_date = item.select_one(".meta_item.mt_date dd").get_text(strip=True) if item.select_one(".meta_item.mt_date dd") else None
 
-        parsed_specs = ProductParser._parse_specs(specs_text)
+        parsed_specs = ProductParser._parse_specs(specs_text, sub_category)
 
         return Equipment(
             id=id,
@@ -36,14 +34,26 @@ class ProductParser:
         )
 
     @staticmethod
-    def _parse_specs(spec_text: str) -> EquipmentSpecs:
+    def _parse_specs(spec_text: str, sub_category: str) -> EquipmentSpecs:
         specs = EquipmentSpecs()
+        registry = SpecRuleRegistry(sub_category=sub_category)
         fragments = [frag.strip() for frag in spec_text.split("/") if frag.strip()]
+
         for frag in fragments:
-            result = ProductParser.spec_registry.parse_fragment(frag)
-            if result:
-                key, value = result
-                setattr(specs, key, value)
-            else:
-                specs.extra = f"{specs.extra} / {frag}" if specs.extra else frag
+            sub_fragments = [s.strip() for s in frag.split(",")] if "," in frag else [frag]
+
+            for sub_frag in sub_fragments:
+                results = registry.parse_fragment(sub_frag)
+                if results:
+                    for key, value in results:
+                        setattr(specs, key, value)
+
+                        if key != "description" and key.startswith("has_"):
+                            specs.description = (
+                                f"{specs.description}, {sub_frag}" if specs.description else sub_frag
+                            )
+                else:
+                    specs.extra = f"{specs.extra} / {sub_frag}" if specs.extra else sub_frag
+
         return specs
+

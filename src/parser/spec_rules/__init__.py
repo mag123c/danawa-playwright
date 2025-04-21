@@ -10,6 +10,7 @@ from .insulation import InsulationSpecParser
 from .material import MaterialSpecParser
 from .temperature_range import TemperatureRangeSpecParser
 from .usage import UsageSpecParser
+from .description_bool import DescriptionBooleanSpecParser
 
 
 
@@ -26,4 +27,5 @@ __all__ = [
     "MaterialSpecParser",
     "TemperatureRangeSpecParser",
     "UsageSpecParser",
+    "DescriptionBooleanSpecParser",
 ]
