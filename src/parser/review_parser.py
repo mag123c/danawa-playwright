@@ -25,19 +25,27 @@ class DanawaReviewParser:
                 f"&page={page_num}&limit={limit}&score=0&t={t}"
             )
 
-            response = self.page.request.get(url)
-            html = response.text()
-            soup = BeautifulSoup(html, "html.parser")
+            try:
+                response = self.page.request.get(url, timeout=30000)
+                html = response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-            review_items = soup.select("li.danawa-prodBlog-companyReview-clazz-more")
-            if not review_items:
-                break
+                review_items = soup.select("li.danawa-prodBlog-companyReview-clazz-more")
+                if not review_items:
+                    break
 
-            for li in review_items:
-                review = self._parse_review_item(li)
-                reviews.append(review)
+                for li in review_items:
+                    review = self._parse_review_item(li)
+                    reviews.append(review)
+
+                time.sleep(random.uniform(1, 3)) 
+
+            except Exception as e:
+                print(f"❗ 페이지 {page_num} 요청 실패: {e}")
+                continue 
 
         return reviews
+
 
     def _parse_review_item(self, li) -> dict:
         score_raw = li.select_one(".star_mask")
