@@ -18,3 +18,4 @@ class Equipment:
     score_count: Optional[float] = None
     specs: EquipmentSpecs = field(default_factory=EquipmentSpecs)
     reviews: Optional[list] = field(default_factory=list)
+    coupangURL: Optional[str] = None

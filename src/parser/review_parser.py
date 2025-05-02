@@ -41,6 +41,7 @@ class DanawaReviewParser:
                 time.sleep(random.uniform(1, 3)) 
 
             except Exception as e:
+                print(f"⚠️ 요청 실패 URL: {url}")
                 print(f"❗ 페이지 {page_num} 요청 실패: {e}")
                 continue 
 

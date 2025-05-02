@@ -32,7 +32,8 @@ class ProductAsyncParser:
             maker=maker,
             registered_date=registered_date,
             specs=parsed_specs,
-            reviews=[]
+            reviews=[],
+            coupangURL=None,
         )
 
     @staticmethod
