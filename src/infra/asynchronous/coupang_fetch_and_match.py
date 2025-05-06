@@ -1,5 +1,6 @@
 import asyncio
 from urllib.parse import quote
+from playwright_stealth import stealth_async
 from playwright.async_api import async_playwright
 from src.parser.asynchronous.coupang_product_parser import CoupangProductParser
 from src.service.coupang_product_matcher import CoupangProductMatcher
@@ -14,39 +15,38 @@ class CoupangHtmlFetcher:
 
     async def fetch_html(self) -> str:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True, args=['--disable-web-security'])
-            context = await browser.new_context(ignore_https_errors=True)
-            api_request = context.request
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-web-security',
+                    '--disable-http2',                                    # HTTP/2 비활성화
+                    '--disable-quic',                                     # QUIC 비활성화
+                    '--disable-features=NetworkService,NetworkServiceInProcess',  
+                    '--disable-blink-features=AutomationControlled'       # 자동화 탐지 차단
+                ]
+            )
+
+            context = await browser.new_context(
+                ignore_https_errors=True,
+                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+                extra_http_headers={
+                    "Accept": "*/*",
+                    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+                    "Referer": "https://www.coupang.com/",
+                }
+            )
+            page = await context.new_page()
+            await stealth_async(page)    # 스텔스 플러그인 적용
 
             encoded = quote(self.keyword)
             url = f"{self.BASE_URL}{encoded}"
             print(f"🔍 요청 URL: {url}")
 
-            response = await api_request.get(
-                url,
-                timeout=60000,
-                headers={
-                    "Host": "www.coupang.com",
-                    "Accept": "*/*",
-                    "Accept-Encoding": "gzip, deflate, br, zstd",
-                    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-                    "Content-Type": "text/plain",
-                    "Origin": "https://www.coupang.com",
-                    "Referer": "https://www.coupang.com/",
-                    "Sec-CH-UA": '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
-                    "Sec-CH-UA-Mobile": "?0",
-                    "Sec-CH-UA-Platform": '"macOS"',
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-site",
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-                    "Priority": "u=1, i"
-                }
-            )
+            await page.goto(url)
+            await page.wait_for_load_state("networkidle")
+            await page.wait_for_selector('ul.search-product-list', timeout=60000)
 
-            html = await response.text()
-            print(f"📄 HTML 길이: {len(html)}")
-
+            html = await page.content()
             await browser.close()
             return html   
 
@@ -55,6 +55,8 @@ class CoupangHtmlFetcher:
 async def main():
     keyword = "올리빙 도트 아이스박스 21L 민트"
     html = await CoupangHtmlFetcher(keyword).fetch_html()
+
+    print(html)
 
     products = CoupangProductParser.parse_products(html)
     if not products:

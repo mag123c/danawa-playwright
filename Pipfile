@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 beautifulsoup4 = "*"
 playwright = "*"
+playwright-stealth = "*"
+setuptools = "*"
+selenium = "*"
+webdriver-manager = "*"
+pip = "*"
+undetected-chromedriver = "*"
 
 [dev-packages]
 
