@@ -16,7 +16,7 @@ class CoupangHtmlFetcher:
     async def fetch_html(self) -> str:
         async with async_playwright() as p:
             browser = await p.chromium.launch(
-                headless=True,
+                headless=False,
                 args=[
                     '--disable-web-security',
                     '--disable-http2',                                    # HTTP/2 비활성화
@@ -35,15 +35,30 @@ class CoupangHtmlFetcher:
                     "Referer": "https://www.coupang.com/",
                 }
             )
+
+            await context.add_cookies([
+                {"name": "PCID", "value": "17418684436306169692218", "domain": ".coupang.com", "path": "/"},
+                {"name": "MARKETID", "value": "17418684436306169692218", "domain": ".coupang.com", "path": "/"},
+                {"name": "x-coupang-accept-language", "value": "ko-KR", "domain": ".coupang.com", "path": "/"},
+                {"name": "_fbp", "value": "fb.1.1741868445075.25325014701425710", "domain": ".coupang.com", "path": "/"},
+                {"name": "delivery_toggle", "value": "false", "domain": ".coupang.com", "path": "/"},
+                {"name": "sid", "value": "672c99cebb674a31b5d29dc6bf026cccfd0cf26d", "domain": ".coupang.com", "path": "/"},
+                {"name": "x-coupang-target-market", "value": "KR", "domain": ".coupang.com", "path": "/"},
+            ])
+
             page = await context.new_page()
             await stealth_async(page)    # 스텔스 플러그인 적용
 
-            encoded = quote(self.keyword)
-            url = f"{self.BASE_URL}{encoded}"
+            url = f"{self.BASE_URL}{self.keyword}"
             print(f"🔍 요청 URL: {url}")
 
-            await page.goto(url)
-            await page.wait_for_load_state("networkidle")
+            response = await page.goto(url, timeout=60000, wait_until="networkidle")
+            if response.status != 200:
+                print(f"❌ 페이지 요청 실패: {response.status}")
+                await browser.close()
+                return ""
+
+            # 페이지 로딩 대기
             await page.wait_for_selector('ul.search-product-list', timeout=60000)
 
             html = await page.content()
@@ -54,9 +69,7 @@ class CoupangHtmlFetcher:
 
 async def main():
     keyword = "올리빙 도트 아이스박스 21L 민트"
-    html = await CoupangHtmlFetcher(keyword).fetch_html()
-
-    print(html)
+    html = await CoupangHtmlFetcher(quote(keyword)).fetch_html()
 
     products = CoupangProductParser.parse_products(html)
     if not products:
