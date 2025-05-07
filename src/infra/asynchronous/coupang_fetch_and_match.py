@@ -16,17 +16,26 @@ class CoupangHtmlFetcher:
     async def fetch_html(self) -> str:
         async with async_playwright() as p:
             browser = await p.chromium.launch(
-                headless=False,
+                headless=True,
                 args=[
                     '--disable-web-security',
                     '--disable-http2',                                    # HTTP/2 비활성화
                     '--disable-quic',                                     # QUIC 비활성화
                     '--disable-features=NetworkService,NetworkServiceInProcess',  
-                    '--disable-blink-features=AutomationControlled'       # 자동화 탐지 차단
+                    '--disable-blink-features=AutomationControlled',      # 자동화 탐지 차단
+                    '--window-size=1920,1080',                            # 창 크기 명시
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--lang=ko'
                 ]
             )
 
             context = await browser.new_context(
+                viewport={"width": 1920, "height": 1080},
+                locale="ko-KR",
+                timezone_id="Asia/Seoul",
+                permissions=["geolocation"],
+                geolocation={"latitude": 37.5665, "longitude": 126.978},
                 ignore_https_errors=True,
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
                 extra_http_headers={
@@ -47,12 +56,14 @@ class CoupangHtmlFetcher:
             ])
 
             page = await context.new_page()
+            
             await stealth_async(page)    # 스텔스 플러그인 적용
 
             url = f"{self.BASE_URL}{self.keyword}"
             print(f"🔍 요청 URL: {url}")
 
-            response = await page.goto(url, timeout=60000, wait_until="networkidle")
+            await page.set_viewport_size({"width": 1920, "height": 1080})
+            response = await page.goto(url, timeout=60000, wait_until="domcontentloaded")
             if response.status != 200:
                 print(f"❌ 페이지 요청 실패: {response.status}")
                 await browser.close()
