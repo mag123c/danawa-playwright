@@ -29,7 +29,7 @@ class DanawaAsyncScraper:
         self.sub_category = sub_category
         self.depth = depth
         self.end_page = end_page
-        self.base_dir = base_dir or f"danawa_{datetime.now():%Y%m%d}"
+        self.base_dir = base_dir or f"danawa_output"
 
     async def scrape(self) -> List[Equipment]:
         url = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"

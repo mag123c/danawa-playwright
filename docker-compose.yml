@@ -1,0 +1,9 @@
+services:
+    danawa-scraper:
+        build: .
+        volumes:
+            - ./output:/app/danawa_output
+        environment:
+            - PYTHONUNBUFFERED=1
+        stdin_open: true
+        tty: true
