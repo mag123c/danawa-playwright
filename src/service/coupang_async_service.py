@@ -23,13 +23,13 @@ class CoupangAsyncService:
             products = CoupangProductParser.parse_products(html)
             if not products:
                 print("❌ 실제 상품이 하나도 없습니다.")
-                return
+                return eq
 
             # 3) 매칭
             best = CoupangProductMatcher(target_name=eq.name).find_best_match(products)
             if not best:
                 print("❌ 유사도가 기준 이하인 상품만 있습니다.")
-                return
+                return eq
             
             print(f"✅ {best.name} | {best.price}원 | 리뷰{best.review_count} | 평점{best.rating}")
             eq.coupangURL = (
