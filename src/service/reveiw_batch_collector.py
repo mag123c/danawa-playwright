@@ -24,7 +24,7 @@ async def collect_review(page, product_no: str, sub_category: str, base_dir: str
 
 async def collect_reviews_concurrently(product_list: List[dict], sub_category: str, base_dir: str) -> Dict[str, List[str]]:
     result = {}
-    semaphore = asyncio.Semaphore(10)
+    semaphore = asyncio.Semaphore(7)
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)

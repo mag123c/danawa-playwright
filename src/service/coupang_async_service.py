@@ -9,7 +9,7 @@ from src.service.coupang_product_matcher import CoupangProductMatcher
 from src.domain.equipment import Equipment
 
 class CoupangAsyncService:
-    def __init__(self, max_concurrency: int = 3):
+    def __init__(self, max_concurrency: int = 2):
         self._sem = asyncio.Semaphore(max_concurrency)
 
     async def _attach_url(self, eq: Equipment) -> Equipment:

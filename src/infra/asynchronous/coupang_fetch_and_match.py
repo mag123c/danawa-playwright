@@ -5,6 +5,7 @@ from playwright_stealth import stealth_async
 from playwright.async_api import async_playwright
 from src.parser.asynchronous.coupang_product_parser import CoupangProductParser
 from src.service.coupang_product_matcher import CoupangProductMatcher
+from src.constant.ua import COUPANG_HEADERS_PROFILES
 # from src.service.affiliate_link_generator import AffiliateLinkGenerator
 
 
@@ -13,14 +14,11 @@ class CoupangHtmlFetcher:
 
     def __init__(self, keyword: str):
         self.keyword = keyword
-        self.user_agents = [
-            {"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36", "platform": '"Windows"'},
-            {"ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36", "platform": '"macOS"'},
-        ]
 
     async def fetch_html(self) -> str:
         async with async_playwright() as p:
-            user_agent_info = random.choice(self.user_agents)
+            user_agent_info = random.choice(COUPANG_HEADERS_PROFILES)
+
             selected_user_agent = user_agent_info["ua"]
             platform = user_agent_info["platform"]
             print(f"🤖 선택된 User-Agent: {selected_user_agent}")
@@ -47,22 +45,20 @@ class CoupangHtmlFetcher:
                 geolocation={"latitude": 37.5665, "longitude": 126.9780},
                 permissions=["geolocation"],
                 ignore_https_errors=True,
-                user_agent=selected_user_agent,
+                user_agent=user_agent_info["ua"],
                 extra_http_headers={
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
                     "Referer": "https://www.coupang.com/",
-                    "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="136", "Not-A.Brand";v="99"',
                     "Sec-Ch-Ua-Mobile": "?0",
-                    "Sec-Ch-Ua-Platform": platform,
                     "Sec-Fetch-Dest": "document",
                     "Sec-Fetch-Mode": "navigate",
-                    "Sec-Fetch-Site": "none", # 직접 접속 시 "none", 내부 이동 시 "same-origin" 등
+                    "Sec-Fetch-Site": "none",
                     "Sec-Fetch-User": "?1",
                     "Upgrade-Insecure-Requests": "1",
+                    **user_agent_info["headers"],  # ✅ 정합성 유지
                 }
             )
-
             # await context.add_cookies([
             #     {"name": "PCID", "value": "17418684436306169692218", "domain": ".coupang.com", "path": "/"},
             #     {"name": "MARKETID", "value": "17418684436306169692218", "domain": ".coupang.com", "path": "/"},

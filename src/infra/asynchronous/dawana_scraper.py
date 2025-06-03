@@ -34,7 +34,7 @@ class DanawaAsyncScraper:
     async def scrape(self) -> List[Equipment]:
         url = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
         all_results: List[Equipment] = []
-        coupang_service = CoupangAsyncService(max_concurrency=3)
+        coupang_service = CoupangAsyncService(max_concurrency=2)
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
